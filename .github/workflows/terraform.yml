@@ -18,6 +18,7 @@ jobs:
         directory:
           - external_tables/asset_name_master
           - external_tables/asset_status_history
+          - external_tables/trade_history
 
     env:
       GOOGLE_CREDENTIALS: ${{ secrets.GCP_SA_KEY }}

@@ -44,8 +44,13 @@ resource "google_cloud_run_v2_job" "hello_world_job" {
   location = var.region
 
   template {
-    # 実行するコンテナの設定
+    # テンプレートレベルの設定
+    task_count   = var.task_count
+    task_timeout = var.task_timeout
+    parallelism  = var.parallelism
+
     template {
+      # 実行するコンテナの設定
       containers {
         image = var.container_image
 
@@ -69,9 +74,6 @@ resource "google_cloud_run_v2_job" "hello_world_job" {
 
       # ジョブの実行設定
       max_retries     = var.max_retries
-      parallelism     = var.parallelism
-      task_count      = var.task_count
-      task_timeout    = var.task_timeout
       service_account = var.service_account_email
     }
   }

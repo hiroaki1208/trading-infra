@@ -73,7 +73,7 @@ resource "google_cloud_run_v2_job" "hello_world_job" {
 
       # ジョブの実行設定
       max_retries     = var.max_retries
-      timeout         = var.task_timeout   # 例: "3600s"
+      timeout         = var.task_timeout # 例: "3600s"
       service_account = var.service_account_email
     }
   }

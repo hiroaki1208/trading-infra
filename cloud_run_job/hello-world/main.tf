@@ -44,37 +44,35 @@ resource "google_cloud_run_v2_job" "hello_world_job" {
   location = var.region
 
   template {
-    spec {
-      # 実行するコンテナの設定
-      template {
-        containers {
-          image = var.container_image
+    # 実行するコンテナの設定
+    template {
+      containers {
+        image = var.container_image
 
-          # リソース制限の設定
-          resources {
-            limits = {
-              cpu    = var.cpu_limit
-              memory = var.memory_limit
-            }
-          }
-
-          # 環境変数の設定（必要に応じて）
-          dynamic "env" {
-            for_each = var.environment_variables
-            content {
-              name  = env.key
-              value = env.value
-            }
+        # リソース制限の設定
+        resources {
+          limits = {
+            cpu    = var.cpu_limit
+            memory = var.memory_limit
           }
         }
 
-        # ジョブの実行設定
-        max_retries     = var.max_retries
-        parallelism     = var.parallelism
-        task_count      = var.task_count
-        task_timeout    = var.task_timeout
-        service_account = var.service_account_email
+        # 環境変数の設定（必要に応じて）
+        dynamic "env" {
+          for_each = var.environment_variables
+          content {
+            name  = env.key
+            value = env.value
+          }
+        }
       }
+
+      # ジョブの実行設定
+      max_retries     = var.max_retries
+      parallelism     = var.parallelism
+      task_count      = var.task_count
+      task_timeout    = var.task_timeout
+      service_account = var.service_account_email
     }
   }
 

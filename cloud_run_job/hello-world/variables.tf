@@ -60,7 +60,7 @@ variable "task_count" {
   default     = 1
 }
 
-variable "task_timeout" {
+variable "timeout" {
   description = "タスクのタイムアウト時間"
   type        = string
   default     = "3600s"

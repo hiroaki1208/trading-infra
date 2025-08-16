@@ -1,5 +1,4 @@
-project_id  = "trading-prod-468212"
-dataset_id  = "trading" # tradingが本番,TEMPが開発用
+dataset_id  = "trading"
 table_id    = "raw_trade_history"
 source_uris = ["https://docs.google.com/spreadsheets/d/1Y4p4YUkEuf4enm-45VON12HWy3rmfNKcUKi2eTu7IfE"]
 sheet_range = "trade_history!A:H"

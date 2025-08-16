@@ -21,8 +21,8 @@ service_account_email = "cloud-run-service@trading-prod-468212.iam.gserviceaccou
 
 # 環境変数（必要に応じて設定）
 environment_variables = {
-  # "ENV_NAME" = "production"
-  # "LOG_LEVEL" = "info"
+  "ENV_NAME" = "production"
+  "LOG_LEVEL" = "info"
 }
 
 # Cloud Scheduler 設定

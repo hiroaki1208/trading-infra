@@ -49,7 +49,7 @@ resource "google_cloud_run_v2_job" "hello_world_job" {
       template {
         containers {
           image = var.container_image
-          
+
           # リソース制限の設定
           resources {
             limits = {
@@ -69,12 +69,10 @@ resource "google_cloud_run_v2_job" "hello_world_job" {
         }
 
         # ジョブの実行設定
-        max_retries      = var.max_retries
-        parallelism      = var.parallelism
-        task_count       = var.task_count
-        task_timeout     = var.task_timeout
-
-        # サービスアカウントの設定
+        max_retries     = var.max_retries
+        parallelism     = var.parallelism
+        task_count      = var.task_count
+        task_timeout    = var.task_timeout
         service_account = var.service_account_email
       }
     }

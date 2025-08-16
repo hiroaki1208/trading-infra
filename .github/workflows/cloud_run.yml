@@ -46,6 +46,18 @@ jobs:
         run: terraform fmt -check
         working-directory: ${{ matrix.directory }}
 
+      - name: Terraform Format (Auto-fix on failure)
+        if: failure()
+        run: |
+          echo "Auto-formatting Terraform files..."
+          terraform fmt
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add .
+          git diff --staged --quiet || git commit -m "Auto-format Terraform files"
+        working-directory: ${{ matrix.directory }}
+        continue-on-error: true
+
       - name: Terraform Validate
         run: terraform validate
         working-directory: ${{ matrix.directory }}

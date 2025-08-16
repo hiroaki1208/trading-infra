@@ -28,12 +28,12 @@ environment_variables = {
 # Cloud Scheduler 設定
 scheduler_name        = "hello-world-daily-scheduler"
 scheduler_description = "Daily execution of hello-world Cloud Run job"
-schedule_cron        = "0 9 * * *"  # 毎日9時（JST）実行
-time_zone           = "Asia/Tokyo"
+schedule_cron         = "0 9 * * *" # 毎日9時（JST）実行
+time_zone             = "Asia/Tokyo"
 
 # スケジューラーのリトライ設定
-attempt_deadline        = "320s"
-retry_count            = 1
-max_retry_duration     = "0s"
-max_backoff_duration   = "3600s"
-max_doublings          = 16
+attempt_deadline     = "320s"
+retry_count          = 1
+max_retry_duration   = "0s"
+max_backoff_duration = "3600s"
+max_doublings        = 16

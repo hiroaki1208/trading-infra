@@ -93,7 +93,7 @@ variable "scheduler_description" {
 variable "schedule_cron" {
   description = "スケジュール実行のcron式（毎日実行）"
   type        = string
-  default     = "0 9 * * *"  # 毎日9時（JST）
+  default     = "0 9 * * *" # 毎日9時（JST）
 }
 
 variable "time_zone" {

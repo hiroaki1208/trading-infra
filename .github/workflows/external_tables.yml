@@ -112,9 +112,9 @@ jobs:
       # 既存リソースをstateにインポート（エラーが出ても継続）
       - name: Import Existing Resources (if any)
         run: |
-          echo "Importing if exists: $TF_VAR_project_id:${{ steps.readvars.outputs.dataset_id }}:${{ steps.readvars.outputs.table_id }}"
-          terraform import google_bigquery_table.external_sheet \
-            "$TF_VAR_project_id:${{ steps.readvars.outputs.dataset_id }}:${{ steps.readvars.outputs.table_id }}" \
+          IMPORT_ID="projects/$TF_VAR_project_id/datasets/${{ steps.readvars.outputs.dataset_id }}/tables/${{ steps.readvars.outputs.table_id }}"
+          echo "Importing if exists: $IMPORT_ID"
+          terraform import google_bigquery_table.external_sheet "$IMPORT_ID" \
             || echo "Import skipped (not existing)"
         working-directory: ${{ matrix.directory }}
         continue-on-error: true

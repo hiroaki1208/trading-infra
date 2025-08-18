@@ -91,17 +91,16 @@ jobs:
         working-directory: ${{ matrix.directory }}
 
       # tfvars から dataset_id / table_id を取得
-      - name: Read vars from tfvars
+      - name: Read vars from tfvars.json (fast)
         id: readvars
         run: |
-          # terraform console は標準入力で式を受け取れる
-          DATASET_ID=$(terraform console -var-file=terraform.tfvars <<< 'var.dataset_id' | tr -d '"')
-          TABLE_ID=$(terraform console -var-file=terraform.tfvars <<< 'var.table_id' | tr -d '"')
+          DATASET_ID=$(jq -r '.dataset_id' terraform.tfvars.json)
+          TABLE_ID=$(jq -r '.table_id' terraform.tfvars.json)
           echo "dataset_id=$DATASET_ID" >> $GITHUB_OUTPUT
           echo "table_id=$TABLE_ID" >> $GITHUB_OUTPUT
         working-directory: ${{ matrix.directory }}
 
-      # 常にformatチェックを実行
+        # 常にformatチェックを実行
       - name: Terraform Format
         run: terraform fmt -check
         working-directory: ${{ matrix.directory }}

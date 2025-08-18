@@ -2,7 +2,9 @@
 - トレーディング関連のinfra
 
 # 前準備
-- GitHubのレポジトリにクレデンシャルを`GCP_SA_KEY`という名前で登録
+- GitHubのレポジトリにクレデンシャルを`TERRAFORM_GCA_PROD/DEV`という名前で登録
+- Terraform実行SAに、作成先データセットのbigquery閲覧、編集権限を付与
+  - Terraform実行SAは作成先データセットがあるプロジェクトとは別プロジェクトにつくった
 
 - ディレクトリの第一階層はGCPのサービス名のイメージ
   - でも、bigqueryだけは`external_tables`みたいな個別サービス？にする

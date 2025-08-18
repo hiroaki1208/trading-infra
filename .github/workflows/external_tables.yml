@@ -90,6 +90,17 @@ jobs:
         run: terraform init -input=false
         working-directory: ${{ matrix.directory }}
 
+      # tfvars から dataset_id / table_id を取得
+      - name: Read vars from tfvars
+        id: readvars
+        run: |
+          # terraform console は標準入力で式を受け取れる
+          DATASET_ID=$(terraform console -var-file=terraform.tfvars <<< 'var.dataset_id' | tr -d '"')
+          TABLE_ID=$(terraform console -var-file=terraform.tfvars <<< 'var.table_id' | tr -d '"')
+          echo "dataset_id=$DATASET_ID" >> $GITHUB_OUTPUT
+          echo "table_id=$TABLE_ID" >> $GITHUB_OUTPUT
+        working-directory: ${{ matrix.directory }}
+
       # 常にformatチェックを実行
       - name: Terraform Format
         run: terraform fmt -check
@@ -102,21 +113,10 @@ jobs:
       # 既存リソースをstateにインポート（エラーが出ても継続）
       - name: Import Existing Resources (if any)
         run: |
-          # テーブル名を動的に設定
-          if [[ "${{ matrix.directory }}" == "external_tables/asset_name_master" ]]; then
-            TABLE_ID="raw_asset_name_master"
-          elif [[ "${{ matrix.directory }}" == "external_tables/asset_status_history" ]]; then
-            TABLE_ID="raw_asset_status_history"
-          elif [[ "${{ matrix.directory }}" == "external_tables/trade_history" ]]; then
-            TABLE_ID="raw_trade_history"
-          fi
-          
-          # データセット名を環境に応じて変更
-          DATASET_ID=${{ matrix.environment == 'prod' && 'trading' || 'trading_dev' }}
-          
-          # 既存のBigQueryテーブルをインポートを試行（失敗しても継続）
-          echo "Attempting to import existing table: $TABLE_ID in environment: ${{ matrix.environment }}"
-          terraform import google_bigquery_table.external_sheet "$TF_VAR_project_id:${DATASET_ID}:$TABLE_ID" || echo "Import failed or resource doesn't exist - continuing..."
+          echo "Importing if exists: $TF_VAR_project_id:${{ steps.readvars.outputs.dataset_id }}:${{ steps.readvars.outputs.table_id }}"
+          terraform import google_bigquery_table.external_sheet \
+            "$TF_VAR_project_id:${{ steps.readvars.outputs.dataset_id }}:${{ steps.readvars.outputs.table_id }}" \
+            || echo "Import skipped (not existing)"
         working-directory: ${{ matrix.directory }}
         continue-on-error: true
 

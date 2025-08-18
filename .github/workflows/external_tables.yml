@@ -119,6 +119,13 @@ jobs:
         working-directory: ${{ matrix.directory }}
         continue-on-error: true
 
+      - name: Sync deletion_protection (no destroy)
+        run: |
+          # この段階では -replace を絶対に付けない
+          terraform plan -no-color -target=google_bigquery_table.external_sheet -out=tfplan-sync || true
+          terraform apply -auto-approve tfplan-sync || true
+        working-directory: ${{ matrix.directory }}
+        
       # PR時: dev/prod両方でplan実行、devのみapply
       - name: Terraform Plan (PR)
         if: github.event_name == 'pull_request'

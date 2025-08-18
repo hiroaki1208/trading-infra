@@ -12,7 +12,6 @@ on:
 
 permissions:
   contents: read
-  id-token: write
 
 jobs:
   # 変更されたディレクトリを検出するジョブ
@@ -72,8 +71,7 @@ jobs:
       matrix: ${{ fromJson(needs.detect-changes.outputs.matrix) }}
 
     env:
-      GOOGLE_CREDENTIALS: ${{ secrets.GCP_SA_KEY }}
-      TF_VAR_google_credentials: ${{ secrets.GCP_SA_KEY }}
+      TF_VAR_google_credentials: ${{ matrix.environment == 'prod' && secrets.TERRAFORM_GCA_PROD || secrets.TERRAFORM_GCA_DEV }}
       TF_IN_AUTOMATION: "true"
       TF_INPUT: "false"
       # 環境に応じてプロジェクトIDを変更

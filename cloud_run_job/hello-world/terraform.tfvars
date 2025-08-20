@@ -1,5 +1,5 @@
 # プロジェクト設定 - 環境変数で上書きされる
-region      = "asia-northeast1"
+region = "asia-northeast1"
 
 # Cloud Run Job 設定
 job_name        = "hello-world-daily-job"
@@ -32,7 +32,7 @@ environment_variables = {
 # Cloud Scheduler 設定
 scheduler_name        = "hello-world-daily-scheduler"
 scheduler_description = "Daily execution of hello-world Cloud Run job"
-schedule_cron         = "0 9 * * *" # 毎日9時（JST）
+schedule_cron         = "0 * * * *" # 毎時
 time_zone             = "Asia/Tokyo"
 
 # スケジューラーのリトライ設定

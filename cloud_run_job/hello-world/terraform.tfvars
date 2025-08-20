@@ -1,7 +1,5 @@
 # プロジェクト設定 - 環境変数で上書きされる
-project_id  = "trading-prod-468212" # デフォルト値（prod）
 region      = "asia-northeast1"
-environment = "prod" # デフォルト値
 
 # Cloud Run Job 設定
 job_name        = "hello-world-daily-job"

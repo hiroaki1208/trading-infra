@@ -25,12 +25,12 @@ jobs:
             project_id: trading-dev-469206      # 開発プロジェクトID
             region: asia-northeast1
             directory: cloud_run_job/hello-world
-            sa_secret: GCP_SA_KEY_DEV          # 例：開発用SAキー（GitHub Secrets名）
+            sa_secret: TERRAFORM_GCA_DEV          # 例：開発用SAキー（GitHub Secrets名）
           - env_name: prod
             project_id: trading-prod-468212    # 本番プロジェクトID
             region: asia-northeast1
             directory: cloud_run_job/hello-world
-            sa_secret: GCP_SA_KEY_PROD         # 例：本番用SAキー（GitHub Secrets名）
+            sa_secret: TERRAFORM_GCA_PROD         # 例：本番用SAキー（GitHub Secrets名）
 
     env:
       TF_IN_AUTOMATION: "true"

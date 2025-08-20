@@ -100,7 +100,7 @@ variable "prod_scheduler_service_account_email" {
 
 # 実際に使用するサービスアカウント（環境に基づいて決定）
 locals {
-  run_service_account_email = var.environment == "dev" ? var.dev_run_service_account_email : var.prod_run_service_account_email
+  run_service_account_email       = var.environment == "dev" ? var.dev_run_service_account_email : var.prod_run_service_account_email
   scheduler_service_account_email = var.environment == "dev" ? var.dev_scheduler_service_account_email : var.prod_scheduler_service_account_email
 }
 

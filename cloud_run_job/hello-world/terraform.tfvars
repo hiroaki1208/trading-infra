@@ -2,9 +2,9 @@
 region = "asia-northeast1"
 
 # Cloud Run Job 設定
-job_name                 = "hello-world-daily-job"
-container_image_dev      = "asia-northeast1-docker.pkg.dev/trading-dev-469206/temp-repo/hello-world:latest"
-container_image_prod     = "asia-northeast1-docker.pkg.dev/trading-prod-468212/temp-repo/hello-world:latest"
+job_name             = "hello-world-daily-job"
+container_image_dev  = "asia-northeast1-docker.pkg.dev/trading-dev-469206/temp-repo/hello-world:latest"
+container_image_prod = "asia-northeast1-docker.pkg.dev/trading-prod-468212/temp-repo/hello-world:latest"
 
 # リソース制限
 cpu_limit    = "1"
@@ -20,7 +20,7 @@ task_timeout = "3600s"
 dev_run_service_account_email       = "crj-trading-rt-dev@trading-dev-469206.iam.gserviceaccount.com"
 dev_scheduler_service_account_email = "cs-trading-inv-dev@trading-dev-469206.iam.gserviceaccount.com"
 
-# サービスアカウント - Prod環境用（devでも設定必要）
+# サービスアカウント - Prod環境用
 prod_run_service_account_email       = "crj-trading-rt-prod@trading-prod-468212.iam.gserviceaccount.com"
 prod_scheduler_service_account_email = "cs-trading-inv-prod@trading-prod-468212.iam.gserviceaccount.com"
 

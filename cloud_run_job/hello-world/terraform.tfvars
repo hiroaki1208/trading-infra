@@ -2,8 +2,9 @@
 region = "asia-northeast1"
 
 # Cloud Run Job 設定
-job_name        = "hello-world-daily-job"
-container_image = "asia-northeast1-docker.pkg.dev/trading-prod-468212/temp-repo/hello-world:latest"
+job_name             = "hello-world-daily-job"
+dev_container_image  = "asia-northeast1-docker.pkg.dev/trading-dev-469206/temp-repo/hello-world:latest"
+prod_container_image = "asia-northeast1-docker.pkg.dev/trading-prod-468212/temp-repo/hello-world:latest"
 
 # リソース制限
 cpu_limit    = "1"

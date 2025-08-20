@@ -41,7 +41,7 @@ resource "google_cloud_run_v2_job" "hello_world_job" {
 
     template {
       containers {
-        image = var.container_image
+        image = local.container_image
 
         resources {
           limits = {

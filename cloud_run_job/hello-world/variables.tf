@@ -25,8 +25,13 @@ variable "job_name" {
   default     = "hello-world-daily-job"
 }
 
-variable "container_image" {
-  description = "実行するコンテナイメージのURL（Artifact Registry）"
+variable "container_image_dev" {
+  description = "実行するコンテナイメージのURL（Artifact Registry）,dev"
+  type        = string
+}
+
+variable "container_image_prod" {
+  description = "実行するコンテナイメージのURL（Artifact Registry）,prod"
   type        = string
 }
 
@@ -98,10 +103,11 @@ variable "prod_scheduler_service_account_email" {
   default     = ""
 }
 
-# 実際に使用するサービスアカウント（環境に基づいて決定）
+# 実際に使用するサービスアカウントとコンテナイメージ（環境に基づいて決定）
 locals {
   run_service_account_email       = var.environment == "dev" ? var.dev_run_service_account_email : var.prod_run_service_account_email
   scheduler_service_account_email = var.environment == "dev" ? var.dev_scheduler_service_account_email : var.prod_scheduler_service_account_email
+  container_image                 = var.environment == "dev" ? var.container_image_dev : var.container_image_prod
 }
 
 variable "environment_variables" {

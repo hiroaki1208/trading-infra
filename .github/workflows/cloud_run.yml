@@ -19,15 +19,25 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        directory:
-          - cloud_run_job/hello-world
+        include:
+          # ← ここをあなたの値に置き換え
+          - env_name: dev
+            project_id: trading-dev-469206      # 開発プロジェクトID
+            region: asia-northeast1
+            directory: cloud_run_job/hello-world
+            sa_secret: GCP_SA_KEY_DEV          # 例：開発用SAキー（GitHub Secrets名）
+          - env_name: prod
+            project_id: trading-prod-468212    # 本番プロジェクトID
+            region: asia-northeast1
+            directory: cloud_run_job/hello-world
+            sa_secret: GCP_SA_KEY_PROD         # 例：本番用SAキー（GitHub Secrets名）
 
     env:
-      GOOGLE_CREDENTIALS: ${{ secrets.GCP_SA_KEY }}
-      TF_VAR_google_credentials: ${{ secrets.GCP_SA_KEY }}
       TF_IN_AUTOMATION: "true"
       TF_INPUT: "false"
-      TF_VAR_project_id: "trading-prod-468212"
+      TF_VAR_project_id: ${{ matrix.project_id }}
+      TF_VAR_region: ${{ matrix.region }}
+      TF_VAR_environment: ${{ matrix.env_name }}
 
     steps:
       - name: Checkout
@@ -37,6 +47,20 @@ jobs:
         uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: 1.7.5
+
+      - name: Configure GCP Credentials
+        run: |
+          echo "${GOOGLE_CREDENTIALS}" > "${HOME}/gcp_sa_key.json"
+          echo "GOOGLE_APPLICATION_CREDENTIALS=${HOME}/gcp_sa_key.json" >> $GITHUB_ENV
+        env:
+          GOOGLE_CREDENTIALS: ${{ secrets[matrix.sa_secret] }}
+
+      - name: Export Terraform Creds
+        run: |
+          echo "${TF_JSON}" > "${HOME}/tf_sa_key.json"
+          echo "TF_VAR_google_credentials=${HOME}/tf_sa_key.json" >> $GITHUB_ENV
+        env:
+          TF_JSON: ${{ secrets[matrix.sa_secret] }}
 
       - name: Terraform Init
         run: terraform init -input=false
@@ -62,55 +86,67 @@ jobs:
         run: terraform validate
         working-directory: ${{ matrix.directory }}
 
-      # Cloud Run関連の既存リソースをstateにインポート（エラーが出ても継続）
+      # 既存リソースの state 取り込み（存在しなければ継続）
       - name: Import Existing Cloud Run Resources (if any)
         run: |
           echo "Attempting to import existing Cloud Run job and scheduler..."
-          # Cloud Run Jobのインポートを試行
-          terraform import google_cloud_run_v2_job.hello_world_job "projects/$TF_VAR_project_id/locations/asia-northeast1/jobs/hello-world-daily-job" || echo "Cloud Run job import failed or doesn't exist - continuing..."
-          
-          # Cloud Schedulerのインポートを試行
-          terraform import google_cloud_scheduler_job.hello_world_scheduler "projects/$TF_VAR_project_id/locations/asia-northeast1/jobs/hello-world-daily-scheduler" || echo "Scheduler job import failed or doesn't exist - continuing..."
+          terraform import google_cloud_run_v2_job.hello_world_job "projects/${TF_VAR_project_id}/locations/${TF_VAR_region}/jobs/hello-world-daily-job" || echo "Cloud Run job import failed or doesn't exist - continuing..."
+          terraform import google_cloud_scheduler_job.hello_world_scheduler "projects/${TF_VAR_project_id}/locations/${TF_VAR_region}/jobs/hello-world-daily-scheduler" || echo "Scheduler job import failed or doesn't exist - continuing..."
         working-directory: ${{ matrix.directory }}
         continue-on-error: true
 
-      # PR時は plan だけ出す
-      - name: Terraform Plan (PR)
-        if: github.event_name == 'pull_request'
+      # --- PR 時の振る舞い ---
+      # Dev: plan -> apply
+      - name: Terraform Plan (PR, Dev)
+        if: github.event_name == 'pull_request' && matrix.env_name == 'dev'
         run: |
-          # 通常のplanを実行
           terraform plan -no-color -out=tfplan
-          
-          echo "=== Terraform Plan Output ==="
+          echo "=== Terraform Plan Output (DEV) ==="
           terraform show -no-color tfplan
         working-directory: ${{ matrix.directory }}
 
-      # main へ push（=マージ後）は apply
-      - name: Terraform Plan (main)
-        if: github.event_name == 'push'
-        run: |
-          # 通常のplanを実行
-          terraform plan -no-color -out=tfplan
-          
-          echo "=== Terraform Plan Output ==="
-          terraform show -no-color tfplan
-        working-directory: ${{ matrix.directory }}
-
-      - name: Terraform Apply (main)
-        if: github.event_name == 'push'
+      - name: Terraform Apply (PR, Dev)
+        if: github.event_name == 'pull_request' && matrix.env_name == 'dev'
         run: terraform apply -auto-approve tfplan
         working-directory: ${{ matrix.directory }}
 
-      # Apply後のリソース確認
-      - name: Verify Cloud Run Job Deployment
-        if: github.event_name == 'push'
+      # Prod: plan のみ
+      - name: Terraform Plan (PR, Prod)
+        if: github.event_name == 'pull_request' && matrix.env_name == 'prod'
+        run: |
+          terraform plan -no-color -out=tfplan
+          echo "=== Terraform Plan Output (PROD) ==="
+          terraform show -no-color tfplan
+        working-directory: ${{ matrix.directory }}
+
+      # --- main へマージ（push）時の振る舞い ---
+      # Prod: plan -> apply
+      - name: Terraform Plan (Push, Prod)
+        if: github.event_name == 'push' && matrix.env_name == 'prod'
+        run: |
+          terraform plan -no-color -out=tfplan
+          echo "=== Terraform Plan Output (PROD) ==="
+          terraform show -no-color tfplan
+        working-directory: ${{ matrix.directory }}
+
+      - name: Terraform Apply (Push, Prod)
+        if: github.event_name == 'push' && matrix.env_name == 'prod'
+        run: terraform apply -auto-approve tfplan
+        working-directory: ${{ matrix.directory }}
+
+      # （任意）Dev の push では何もしない設計。必要なら以下のように追加可能
+      # - name: Terraform Plan/Apply (Push, Dev)
+      #   if: github.event_name == 'push' && matrix.env_name == 'dev'
+      #   run: echo "No action for Dev on push"
+
+      # Apply後のリソース確認（Prodのみ）
+      - name: Verify Cloud Run Job Deployment (Prod)
+        if: github.event_name == 'push' && matrix.env_name == 'prod'
         run: |
           echo "Verifying Cloud Run job deployment..."
-          
-          # Cloud Run jobの状態確認
           if command -v gcloud &> /dev/null; then
-            gcloud run jobs describe hello-world-daily-job --region=asia-northeast1 --project=$TF_VAR_project_id || echo "Could not describe job - may not exist yet"
-            gcloud scheduler jobs describe hello-world-daily-scheduler --location=asia-northeast1 --project=$TF_VAR_project_id || echo "Could not describe scheduler - may not exist yet"
+            gcloud run jobs describe hello-world-daily-job --region="${TF_VAR_region}" --project="${TF_VAR_project_id}" || echo "Could not describe job - may not exist yet"
+            gcloud scheduler jobs describe hello-world-daily-scheduler --location="${TF_VAR_region}" --project="${TF_VAR_project_id}" || echo "Could not describe scheduler - may not exist yet"
           else
             echo "gcloud CLI not available - skipping verification"
           fi

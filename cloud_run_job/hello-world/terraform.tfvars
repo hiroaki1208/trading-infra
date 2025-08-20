@@ -1,6 +1,5 @@
-# プロジェクト設定
-project_id = "trading-prod-468212"
-region     = "asia-northeast1"
+# プロジェクト設定 - 環境変数で上書きされる
+region      = "asia-northeast1"
 
 # Cloud Run Job 設定
 job_name        = "hello-world-daily-job"
@@ -16,8 +15,13 @@ parallelism  = 1
 task_count   = 1
 task_timeout = "3600s"
 
-# サービスアカウント（適切なサービスアカウントのメールアドレスに変更してください）
-service_account_email = "cloud-run-service@trading-prod-468212.iam.gserviceaccount.com"
+# サービスアカウント - Dev環境用
+dev_run_service_account_email       = "crj-trading-rt-dev@trading-dev-469206.iam.gserviceaccount.com"
+dev_scheduler_service_account_email = "cs-trading-inv-dev@trading-dev-469206.iam.gserviceaccount.com"
+
+# サービスアカウント - Prod環境用（devでも設定必要）
+prod_run_service_account_email       = "crj-trading-rt-prod@trading-prod-468212.iam.gserviceaccount.com"
+prod_scheduler_service_account_email = "cs-trading-inv-prod@trading-prod-468212.iam.gserviceaccount.com"
 
 # 環境変数（必要に応じて設定）
 environment_variables = {

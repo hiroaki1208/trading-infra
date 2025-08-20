@@ -66,9 +66,42 @@ variable "task_timeout" {
   default     = "3600s"
 }
 
-variable "service_account_email" {
-  description = "Cloud Run Jobで使用するサービスアカウントのメールアドレス"
+# 環境識別変数
+variable "environment" {
+  description = "環境名（dev, prod）"
   type        = string
+}
+
+# Dev環境用サービスアカウント
+variable "dev_run_service_account_email" {
+  description = "Dev環境でCloud Run Jobで使用するサービスアカウントのメールアドレス（ランタイム用）"
+  type        = string
+  default     = ""
+}
+
+variable "dev_scheduler_service_account_email" {
+  description = "Dev環境でCloud Schedulerで使用するサービスアカウントのメールアドレス（OAuthトークン発行用）"
+  type        = string
+  default     = ""
+}
+
+# Prod環境用サービスアカウント
+variable "prod_run_service_account_email" {
+  description = "Prod環境でCloud Run Jobで使用するサービスアカウントのメールアドレス（ランタイム用）"
+  type        = string
+  default     = ""
+}
+
+variable "prod_scheduler_service_account_email" {
+  description = "Prod環境でCloud Schedulerで使用するサービスアカウントのメールアドレス（OAuthトークン発行用）"
+  type        = string
+  default     = ""
+}
+
+# 実際に使用するサービスアカウント（環境に基づいて決定）
+locals {
+  run_service_account_email = var.environment == "dev" ? var.dev_run_service_account_email : var.prod_run_service_account_email
+  scheduler_service_account_email = var.environment == "dev" ? var.dev_scheduler_service_account_email : var.prod_scheduler_service_account_email
 }
 
 variable "environment_variables" {

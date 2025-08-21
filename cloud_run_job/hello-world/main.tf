@@ -99,6 +99,7 @@ resource "google_cloud_scheduler_job" "hello_world_scheduler" {
     # ← 起動用サービスアカウント（OAuthトークン発行に使用）
     oauth_token {
       service_account_email = local.scheduler_service_account_email
+      scope                 = "https://www.googleapis.com/auth/cloud-platform"
     }
   }
 

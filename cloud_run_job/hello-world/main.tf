@@ -1,4 +1,6 @@
+# ===========================================
 # Terraformの設定ブロック
+# ===========================================
 terraform {
   required_version = ">= 1.6.0"
 
@@ -10,14 +12,18 @@ terraform {
   }
 }
 
+# ===========================================
 # Google Cloudプロバイダー
+# ===========================================
 provider "google" {
   project     = var.project_id
   region      = var.region
   credentials = var.google_credentials
 }
 
+# ===========================================
 # 必要APIの有効化
+# ===========================================
 resource "google_project_service" "cloud_run" {
   project            = var.project_id
   service            = "run.googleapis.com"
@@ -30,7 +36,9 @@ resource "google_project_service" "cloud_scheduler" {
   disable_on_destroy = false
 }
 
+# ===========================================
 # Cloud Run Job
+# ===========================================
 resource "google_cloud_run_v2_job" "hello_world_job" {
   name     = var.job_name
   location = var.region
@@ -59,7 +67,7 @@ resource "google_cloud_run_v2_job" "hello_world_job" {
         }
       }
 
-      # ← 実行用サービスアカウント（ランタイム）
+      # 実行用サービスアカウント（ランタイム）
       service_account = local.run_service_account_email
 
       max_retries = var.max_retries
@@ -72,7 +80,11 @@ resource "google_cloud_run_v2_job" "hello_world_job" {
   ]
 }
 
+# ===========================================
 # Cloud Scheduler Job
+#  - v2 jobs:run を OAuth で呼出し
+#  - 空JSONボディ('{}')を明示付与して 400 を回避
+# ===========================================
 resource "google_cloud_scheduler_job" "hello_world_scheduler" {
   name             = var.scheduler_name
   description      = var.scheduler_description
@@ -90,14 +102,18 @@ resource "google_cloud_scheduler_job" "hello_world_scheduler" {
 
   http_target {
     http_method = "POST"
-    uri         = "https://run.googleapis.com/v2/projects/${var.project_id}/locations/${var.region}/jobs/${google_cloud_run_v2_job.hello_world_job.name}:run"
 
+    # v2 の jobs:run エンドポイント（グローバルホスト）
+    uri = "https://run.googleapis.com/v2/projects/${var.project_id}/locations/${var.region}/jobs/${google_cloud_run_v2_job.hello_world_job.name}:run"
 
     headers = {
       "Content-Type" = "application/json"
     }
 
-    # ← 起動用サービスアカウント（OAuthトークン発行に使用）
+    # ★ 重要：空JSONボディを明示（Schedulerの空ボディ+JSONでの 400 回避）
+    body = base64encode("{}")
+
+    # 起動用サービスアカウント（OAuthトークン発行に使用）
     oauth_token {
       service_account_email = local.scheduler_service_account_email
       scope                 = "https://www.googleapis.com/auth/cloud-platform"

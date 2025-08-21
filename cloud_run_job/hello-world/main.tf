@@ -106,6 +106,12 @@ resource "google_cloud_scheduler_job" "hello_world_scheduler" {
     # v2 の jobs:run エンドポイント（グローバルホスト）
     uri = "https://run.googleapis.com/v2/projects/${var.project_id}/locations/${var.region}/jobs/${google_cloud_run_v2_job.hello_world_job.name}:run"
 
+    # ヘッダーは省略（付けるなら Content-Type: application/json とセットで body 必須）
+    # headers = { "Content-Type" = "application/json" }
+
+    # 空JSONボディを明示（Scheduler 経由の 400 回避）
+    body = base64encode("{}")
+
     # 起動用サービスアカウント（OAuthトークン発行に使用）
     oauth_token {
       service_account_email = local.scheduler_service_account_email

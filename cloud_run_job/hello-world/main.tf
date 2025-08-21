@@ -90,7 +90,8 @@ resource "google_cloud_scheduler_job" "hello_world_scheduler" {
 
   http_target {
     http_method = "POST"
-    uri         = "https://${var.region}-run.googleapis.com/apis/run.googleapis.com/v1/namespaces/${var.project_id}/jobs/${google_cloud_run_v2_job.hello_world_job.name}:run"
+    uri         = "https://run.googleapis.com/v2/projects/${var.project_id}/locations/${var.region}/jobs/${google_cloud_run_v2_job.hello_world_job.name}:run"
+
 
     headers = {
       "Content-Type" = "application/json"

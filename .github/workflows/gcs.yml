@@ -1,0 +1,150 @@
+name: GCS Bucket CI/CD
+
+on:
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'gcs/**'
+  push:
+    branches: [ main ]
+    paths:
+      - 'gcs/**'
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  terraform:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          # ← ここをあなたの値に置き換え
+          - env_name: dev
+            project_id: trading-dev-469206      # 開発プロジェクトID
+            region: US
+            directory: gcs
+            sa_secret: TERRAFORM_GCA_DEV          # 例：開発用SAキー（GitHub Secrets名）
+          - env_name: prod
+            project_id: trading-prod-468212    # 本番プロジェクトID
+            region: US
+            directory: gcs
+            sa_secret: TERRAFORM_GCA_PROD         # 例：本番用SAキー（GitHub Secrets名）
+
+    env:
+      TF_IN_AUTOMATION: "true"
+      TF_INPUT: "false"
+      TF_VAR_project_id: ${{ matrix.project_id }}
+      TF_VAR_region: ${{ matrix.region }}
+      TF_VAR_environment: ${{ matrix.env_name }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.7.5
+
+      - name: Configure GCP Credentials
+        run: |
+          echo "${GOOGLE_CREDENTIALS}" > "${HOME}/gcp_sa_key.json"
+          echo "GOOGLE_APPLICATION_CREDENTIALS=${HOME}/gcp_sa_key.json" >> $GITHUB_ENV
+        env:
+          GOOGLE_CREDENTIALS: ${{ secrets[matrix.sa_secret] }}
+
+      - name: Export Terraform Creds
+        run: |
+          echo "${TF_JSON}" > "${HOME}/tf_sa_key.json"
+          echo "TF_VAR_google_credentials=${HOME}/tf_sa_key.json" >> $GITHUB_ENV
+        env:
+          TF_JSON: ${{ secrets[matrix.sa_secret] }}
+
+      - name: Terraform Init
+        run: terraform init -input=false
+        working-directory: ${{ matrix.directory }}
+
+      - name: Terraform Format
+        run: terraform fmt -check
+        working-directory: ${{ matrix.directory }}
+
+      - name: Terraform Format (Auto-fix on failure)
+        if: failure()
+        run: |
+          echo "Auto-formatting Terraform files..."
+          terraform fmt
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add .
+          git diff --staged --quiet || git commit -m "Auto-format Terraform files"
+        working-directory: ${{ matrix.directory }}
+        continue-on-error: true
+
+      - name: Terraform Validate
+        run: terraform validate
+        working-directory: ${{ matrix.directory }}
+
+      # 既存リソースの state 取り込み（存在しなければ継続）
+      - name: Import Existing GCS Bucket (if any)
+        run: |
+          echo "Attempting to import existing GCS bucket..."
+          # バケット名は terraform.tfvars.json から取得される想定
+          terraform import google_storage_bucket.bucket "$(terraform output -raw bucket_name 2>/dev/null || echo 'unknown-bucket')" || echo "GCS bucket import failed or doesn't exist - continuing..."
+        working-directory: ${{ matrix.directory }}
+        continue-on-error: true
+
+      # --- PR 時の振る舞い ---
+      # Dev: plan -> apply
+      - name: Terraform Plan (PR, Dev)
+        if: github.event_name == 'pull_request' && matrix.env_name == 'dev'
+        run: |
+          terraform plan -no-color -out=tfplan
+          echo "=== Terraform Plan Output (DEV) ==="
+          terraform show -no-color tfplan
+        working-directory: ${{ matrix.directory }}
+
+      - name: Terraform Apply (PR, Dev)
+        if: github.event_name == 'pull_request' && matrix.env_name == 'dev'
+        run: terraform apply -auto-approve tfplan
+        working-directory: ${{ matrix.directory }}
+
+      # Prod: plan のみ
+      - name: Terraform Plan (PR, Prod)
+        if: github.event_name == 'pull_request' && matrix.env_name == 'prod'
+        run: |
+          terraform plan -no-color -out=tfplan
+          echo "=== Terraform Plan Output (PROD) ==="
+          terraform show -no-color tfplan
+        working-directory: ${{ matrix.directory }}
+
+      # --- main へマージ（push）時の振る舞い ---
+      # Prod: plan -> apply
+      - name: Terraform Plan (Push, Prod)
+        if: github.event_name == 'push' && matrix.env_name == 'prod'
+        run: |
+          terraform plan -no-color -out=tfplan
+          echo "=== Terraform Plan Output (PROD) ==="
+          terraform show -no-color tfplan
+        working-directory: ${{ matrix.directory }}
+
+      - name: Terraform Apply (Push, Prod)
+        if: github.event_name == 'push' && matrix.env_name == 'prod'
+        run: terraform apply -auto-approve tfplan
+        working-directory: ${{ matrix.directory }}
+
+      # Apply後のリソース確認（Prodのみ）
+      - name: Verify GCS Bucket Deployment (Prod)
+        if: github.event_name == 'push' && matrix.env_name == 'prod'
+        run: |
+          echo "Verifying GCS bucket deployment..."
+          if command -v gcloud &> /dev/null; then
+            # バケット名を取得して確認
+            BUCKET_NAME=$(terraform output -raw bucket_name 2>/dev/null || echo 'unknown-bucket')
+            gcloud storage buckets describe "gs://${BUCKET_NAME}" || echo "Could not describe bucket - may not exist yet"
+          else
+            echo "gcloud CLI not available - skipping verification"
+          fi
+        working-directory: ${{ matrix.directory }}
+        continue-on-error: true

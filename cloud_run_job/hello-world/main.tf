@@ -70,7 +70,7 @@ resource "google_cloud_run_v2_job" "hello_world_job" {
       # 実行用サービスアカウント（ランタイム）
       service_account = local.run_service_account_email
 
-      max_retries = var.max_retries
+      max_retries = 2
       timeout     = var.task_timeout
     }
   }

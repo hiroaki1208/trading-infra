@@ -24,6 +24,21 @@
   - `main.tf`, `variables.tf`をテンプレにして、各ディレクトリ内でハイパーリンクで参照するとか？
   - ハイパーリンク参照ってwindowsでできる？
 
+# Cloud run job + cloud scheduler作成時の、各種権限設定
+- 前提
+  - SAの種類：以下の３種類を作成
+    - terraform実行用SA：project: infraに作成。
+    - run time用SA：cloud run job実行時に使用するためのSA。prod/devにそれぞれ作成
+    - cloud scheduler invoker: cloud schedulerを起動するためのSA。prod/devにそれぞれ作成
+- 設定内容
+  - terraform実行用SA周り
+    - prod/devそれぞれのプロジェクトにて以下を設定
+      - cloud run作成
+      - cloud scheduler作成
+      - act as runtimeSA,cloud sch invSA（それぞれのSAにて、アクセスを許可するプリンシパルにterraform実行SAを追加）
+  - cloud sch invSA
+    - cloud run起動
+
 # Terraform コマンド概要
 
 ## 1. `terraform fmt`（Format）

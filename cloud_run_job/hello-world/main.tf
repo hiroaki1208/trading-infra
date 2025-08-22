@@ -124,3 +124,7 @@ resource "google_cloud_scheduler_job" "hello_world_scheduler" {
     google_cloud_run_v2_job.hello_world_job
   ]
 }
+
+output "debug_run_sa" {
+  value = local.run_service_account_email
+}

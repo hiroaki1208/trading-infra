@@ -10,6 +10,12 @@ terraform {
   }
 }
 
+# 変数に依存するローカル値（未定義だった参照を補完）
+locals {
+  # 例: GCS上のCSVのパスパターン（必要に応じて上書き/変数化してください）
+  source_uris = "gs://your-bucket/path/*.csv"
+}
+
 # Google Cloudプロバイダーの設定
 provider "google" {
   project     = var.project_id
@@ -43,26 +49,25 @@ resource "google_bigquery_table" "price_data" {
   table_id            = var.table_id
   deletion_protection = false
 
-  # テーブルスキーマの定義
+  # テーブルスキーマの定義（JSON文字列）
   schema = jsonencode(var.table_schema)
 
-  # 既存のデータセットに依存
   depends_on = [
     google_project_service.bigquery
   ]
 
   lifecycle {
-    # テーブルが既に存在する場合は無視
+    # 既存テーブルのスキーマ差分は無視（必要に応じて調整）
     ignore_changes = [schema]
   }
 }
 
 # BigQuery Data Transfer Service用のサービスアカウント作成
 resource "google_service_account" "data_transfer_sa" {
+  project      = var.project_id
   account_id   = "bq-data-transfer-${var.environment}"
   display_name = "BigQuery Data Transfer Service Account (${var.environment})"
   description  = "Service account for BigQuery Data Transfer from GCS"
-  project      = var.project_id
 }
 
 # サービスアカウントにBigQueryへの書き込み権限を付与
@@ -81,15 +86,13 @@ resource "google_project_iam_member" "storage_object_viewer" {
 
 # BigQuery Data Transfer Serviceの設定
 resource "google_bigquery_data_transfer_config" "gcs_to_bigquery" {
-  display_name   = "${var.transfer_display_name} (${var.environment})"
-  location       = var.location
-  data_source_id = "google_cloud_storage"
-
-  # 転送先テーブルの設定
-  destination_dataset_id = var.dataset_id
-
-  # スケジュール設定（毎日15時JST）
-  schedule = "every day ${var.schedule_time}"
+  display_name             = "${var.transfer_display_name} (${var.environment})"
+  location                 = var.location
+  data_source_id           = "google_cloud_storage"
+  destination_dataset_id   = var.dataset_id
+  schedule                 = "every day ${var.schedule_time}" # 例: "every day 15:00"
+  notification_pubsub_topic = null
+  service_account_name     = google_service_account.data_transfer_sa.email
 
   # データソース固有のパラメータ
   params = {
@@ -97,19 +100,13 @@ resource "google_bigquery_data_transfer_config" "gcs_to_bigquery" {
     destination_table_name_template = var.table_id
     file_format                     = "CSV"
     max_bad_records                 = "0"
-    skip_leading_rows               = "1"       # ヘッダー行をスキップ
+    skip_leading_rows               = "1"        # ヘッダー行をスキップ
     write_disposition               = "WRITE_APPEND" # 既存データに追加
     field_delimiter                 = ","
     allow_quoted_newlines           = "false"
     allow_jagged_rows               = "false"
     encoding                        = "UTF-8"
   }
-
-  # 通知設定（オプション）
-  notification_pubsub_topic = null
-
-  # サービスアカウント指定
-  service_account_name = google_service_account.data_transfer_sa.email
 
   depends_on = [
     google_project_service.bigquerydatatransfer,

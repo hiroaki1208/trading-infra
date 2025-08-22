@@ -23,7 +23,7 @@ provider "google" {
 
 # Google Cloud Storage バケットの作成
 resource "google_storage_bucket" "bucket" {
-  name          = var.bucket_name
+  name          = "${var.bucket_name}-${var.environment}"
   location      = var.location
   project       = var.project_id
   force_destroy = var.force_destroy

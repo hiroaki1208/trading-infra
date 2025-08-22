@@ -34,6 +34,12 @@ variable "force_destroy" {
   default     = false
 }
 
+variable "environment" {
+  description = "環境名（dev, prod など）"
+  type        = string
+  default     = "dev"
+}
+
 # Google Cloud認証情報
 variable "google_credentials" {
   description = "Google Cloud サービスアカウントキー（JSON文字列）"

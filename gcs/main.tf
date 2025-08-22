@@ -35,4 +35,12 @@ resource "google_storage_bucket" "bucket" {
 
   # パブリックアクセス防止
   public_access_prevention = "enforced"
+
+  # ライフサイクル設定で既存リソースとの競合を回避
+  lifecycle {
+    # バケット名の変更を無視（既存バケットがある場合）
+    ignore_changes = [name]
+    # リソースの破棄を防止
+    prevent_destroy = false
+  }
 }

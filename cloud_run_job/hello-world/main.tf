@@ -1,10 +1,9 @@
+# ===========================================
 # Terraformの設定ブロック
-# このプロジェクトで使用するTerraformのバージョンとプロバイダーを定義
+# ===========================================
 terraform {
-  # 必要なTerraformのバージョンを指定（1.6.0以上）
   required_version = ">= 1.6.0"
 
-  # 使用するプロバイダーとそのバージョンを指定
   required_providers {
     google = {
       source  = "hashicorp/google"
@@ -13,47 +12,45 @@ terraform {
   }
 }
 
-# Google Cloudプロバイダーの設定
-# 接続先のプロジェクトとリージョンを指定
+# ===========================================
+# Google Cloudプロバイダー
+# ===========================================
 provider "google" {
   project     = var.project_id
   region      = var.region
   credentials = var.google_credentials
 }
 
-# Cloud Run APIの有効化
-# Cloud Run Jobsを使用するために必要なAPIサービスを有効にする
+# ===========================================
+# 必要APIの有効化
+# ===========================================
 resource "google_project_service" "cloud_run" {
   project            = var.project_id
   service            = "run.googleapis.com"
   disable_on_destroy = false
 }
 
-# Cloud Scheduler APIの有効化
-# 定期実行のスケジューリングに必要なAPIサービスを有効にする
 resource "google_project_service" "cloud_scheduler" {
   project            = var.project_id
   service            = "cloudscheduler.googleapis.com"
   disable_on_destroy = false
 }
 
-# Cloud Run Job の作成
-# Artifact Registryからhello-worldイメージを使用してジョブを定義
+# ===========================================
+# Cloud Run Job
+# ===========================================
 resource "google_cloud_run_v2_job" "hello_world_job" {
   name     = var.job_name
   location = var.region
 
   template {
-    # テンプレートレベルの設定
     task_count  = var.task_count
     parallelism = var.parallelism
 
     template {
-      # 実行するコンテナの設定
       containers {
-        image = var.container_image
+        image = local.container_image
 
-        # リソース制限の設定
         resources {
           limits = {
             cpu    = var.cpu_limit
@@ -61,7 +58,6 @@ resource "google_cloud_run_v2_job" "hello_world_job" {
           }
         }
 
-        # 環境変数の設定（必要に応じて）
         dynamic "env" {
           for_each = var.environment_variables
           content {
@@ -71,21 +67,24 @@ resource "google_cloud_run_v2_job" "hello_world_job" {
         }
       }
 
-      # ジョブの実行設定
-      max_retries     = var.max_retries
-      timeout         = var.task_timeout # 例: "3600s"
-      service_account = var.service_account_email
+      # 実行用サービスアカウント（ランタイム）
+      service_account = local.run_service_account_email
+
+      max_retries = var.max_retries
+      timeout     = var.task_timeout
     }
   }
 
-  # 依存関係の定義
   depends_on = [
     google_project_service.cloud_run
   ]
 }
 
-# Cloud Scheduler Job の作成
-# 毎日定期実行するためのスケジューラーを設定
+# ===========================================
+# Cloud Scheduler Job
+#  - v2 jobs:run を OAuth で呼出し
+#  - 空JSONボディ('{}')を明示付与して 400 を回避
+# ===========================================
 resource "google_cloud_scheduler_job" "hello_world_scheduler" {
   name             = var.scheduler_name
   description      = var.scheduler_description
@@ -103,18 +102,17 @@ resource "google_cloud_scheduler_job" "hello_world_scheduler" {
 
   http_target {
     http_method = "POST"
-    uri         = "https://${var.region}-run.googleapis.com/apis/run.googleapis.com/v1/namespaces/${var.project_id}/jobs/${google_cloud_run_v2_job.hello_world_job.name}:run"
 
-    headers = {
-      "Content-Type" = "application/json"
-    }
+    # v2 の jobs:run エンドポイント（グローバルホスト）
+    uri = "https://run.googleapis.com/v2/projects/${var.project_id}/locations/${var.region}/jobs/${google_cloud_run_v2_job.hello_world_job.name}:run"
 
+    # 起動用サービスアカウント（OAuthトークン発行に使用）
     oauth_token {
-      service_account_email = var.service_account_email
+      service_account_email = local.scheduler_service_account_email
+      scope                 = "https://www.googleapis.com/auth/cloud-platform"
     }
   }
 
-  # 依存関係の定義
   depends_on = [
     google_project_service.cloud_scheduler,
     google_cloud_run_v2_job.hello_world_job

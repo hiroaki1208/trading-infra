@@ -41,22 +41,3 @@ variable "google_credentials" {
   default     = null
   sensitive   = true
 }
-
-# IAMアクセス権設定用変数
-variable "object_viewers" {
-  description = "Storage Object Viewer権限を付与するメンバーのリスト"
-  type        = list(string)
-  default     = []
-}
-
-variable "object_admins" {
-  description = "Storage Object Admin権限を付与するメンバーのリスト"
-  type        = list(string)
-  default     = []
-}
-
-variable "bucket_admins" {
-  description = "Storage Admin権限を付与するメンバーのリスト"
-  type        = list(string)
-  default     = []
-}

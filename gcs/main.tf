@@ -36,28 +36,3 @@ resource "google_storage_bucket" "bucket" {
   # パブリックアクセス防止
   public_access_prevention = "enforced"
 }
-
-# バケットへのIAMアクセス権管理
-# 例：Storage Object Viewer権限をサービスアカウントに付与
-resource "google_storage_bucket_iam_binding" "bucket_object_viewer" {
-  bucket = google_storage_bucket.bucket.name
-  role   = "roles/storage.objectViewer"
-
-  members = var.object_viewers
-}
-
-# 例：Storage Object Admin権限をサービスアカウントに付与
-resource "google_storage_bucket_iam_binding" "bucket_object_admin" {
-  bucket = google_storage_bucket.bucket.name
-  role   = "roles/storage.objectAdmin"
-
-  members = var.object_admins
-}
-
-# 例：Storage Admin権限をサービスアカウントに付与
-resource "google_storage_bucket_iam_binding" "bucket_admin" {
-  bucket = google_storage_bucket.bucket.name
-  role   = "roles/storage.admin"
-
-  members = var.bucket_admins
-}

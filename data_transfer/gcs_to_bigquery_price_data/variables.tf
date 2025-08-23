@@ -91,8 +91,8 @@ variable "time_zone" {
 
 # 使用するバケット名とサービスアカウント（環境に基づいて決定）
 locals {
-  bucket_name                        = "${var.bucket_name_base}-${var.environment}"
-  source_uris                        = "gs://${local.bucket_name}/${var.gcs_source_path}"
+  bucket_name                         = "${var.bucket_name_base}-${var.environment}"
+  source_uris                         = "gs://${local.bucket_name}/${var.gcs_source_path}"
   data_transfer_service_account_email = var.environment == "dev" ? var.dev_data_transfer_service_account_email : var.prod_data_transfer_service_account_email
 }
 

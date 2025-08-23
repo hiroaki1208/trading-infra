@@ -36,12 +36,6 @@ resource "google_project_service" "storage" {
   disable_on_destroy = false
 }
 
-# 既存のBigQuery Data Transfer用サービスアカウントを参照
-data "google_service_account" "data_transfer_sa" {
-  account_id = "bq-transfer-runner-${var.environment}"
-  project    = var.project_id
-}
-
 # BigQueryテーブルの作成
 resource "google_bigquery_table" "price_data" {
   project             = var.project_id
@@ -93,7 +87,7 @@ resource "google_bigquery_data_transfer_config" "gcs_to_bigquery" {
   notification_pubsub_topic = null
 
   # サービスアカウント指定
-  service_account_name = data.google_service_account.data_transfer_sa.email
+  service_account_name = local.data_transfer_service_account_email
 
   depends_on = [
     google_project_service.bigquerydatatransfer,

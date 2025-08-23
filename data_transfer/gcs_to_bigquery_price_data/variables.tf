@@ -30,6 +30,20 @@ variable "environment" {
   type        = string
 }
 
+# Dev環境用サービスアカウント
+variable "dev_data_transfer_service_account_email" {
+  description = "Dev環境でBigQuery Data Transferで使用するサービスアカウントのメールアドレス"
+  type        = string
+  default     = "bq-transfer-runner-dev@trading-dev-469206.iam.gserviceaccount.com"
+}
+
+# Prod環境用サービスアカウント
+variable "prod_data_transfer_service_account_email" {
+  description = "Prod環境でBigQuery Data Transferで使用するサービスアカウントのメールアドレス"
+  type        = string
+  default     = "bq-transfer-runner-prod@trading-prod-468212.iam.gserviceaccount.com"
+}
+
 # BigQuery設定
 variable "dataset_id" {
   description = "BigQueryデータセットID"
@@ -75,10 +89,11 @@ variable "time_zone" {
   default     = "Asia/Tokyo"
 }
 
-# 使用するバケット名（環境に基づいて決定）
+# 使用するバケット名とサービスアカウント（環境に基づいて決定）
 locals {
-  bucket_name = "${var.bucket_name_base}-${var.environment}"
-  source_uris = "gs://${local.bucket_name}/${var.gcs_source_path}"
+  bucket_name                        = "${var.bucket_name_base}-${var.environment}"
+  source_uris                        = "gs://${local.bucket_name}/${var.gcs_source_path}"
+  data_transfer_service_account_email = var.environment == "dev" ? var.dev_data_transfer_service_account_email : var.prod_data_transfer_service_account_email
 }
 
 # BigQueryテーブルのスキーマ定義

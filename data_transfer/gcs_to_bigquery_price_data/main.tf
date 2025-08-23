@@ -36,6 +36,12 @@ resource "google_project_service" "storage" {
   disable_on_destroy = false
 }
 
+# 既存のBigQuery Data Transfer用サービスアカウントを参照
+data "google_service_account" "data_transfer_sa" {
+  account_id = "bq-transfer-runner-${var.environment}"
+  project    = var.project_id
+}
+
 # BigQueryテーブルの作成
 resource "google_bigquery_table" "price_data" {
   project             = var.project_id
@@ -55,28 +61,6 @@ resource "google_bigquery_table" "price_data" {
     # テーブルが既に存在する場合は無視
     ignore_changes = [schema]
   }
-}
-
-# BigQuery Data Transfer Service用のサービスアカウント作成
-resource "google_service_account" "data_transfer_sa" {
-  account_id   = "bq-data-transfer-${var.environment}"
-  display_name = "BigQuery Data Transfer Service Account (${var.environment})"
-  description  = "Service account for BigQuery Data Transfer from GCS"
-  project      = var.project_id
-}
-
-# サービスアカウントにBigQueryへの書き込み権限を付与
-resource "google_project_iam_member" "bigquery_data_editor" {
-  project = var.project_id
-  role    = "roles/bigquery.dataEditor"
-  member  = "serviceAccount:${google_service_account.data_transfer_sa.email}"
-}
-
-# サービスアカウントにGCSからの読み取り権限を付与
-resource "google_project_iam_member" "storage_object_viewer" {
-  project = var.project_id
-  role    = "roles/storage.objectViewer"
-  member  = "serviceAccount:${google_service_account.data_transfer_sa.email}"
 }
 
 # BigQuery Data Transfer Serviceの設定
@@ -109,33 +93,10 @@ resource "google_bigquery_data_transfer_config" "gcs_to_bigquery" {
   notification_pubsub_topic = null
 
   # サービスアカウント指定
-  service_account_name = google_service_account.data_transfer_sa.email
+  service_account_name = data.google_service_account.data_transfer_sa.email
 
   depends_on = [
     google_project_service.bigquerydatatransfer,
-    google_bigquery_table.price_data,
-    google_project_iam_member.bigquery_data_editor,
-    google_project_iam_member.storage_object_viewer
+    google_bigquery_table.price_data
   ]
-}
-
-# 出力値
-output "transfer_config_name" {
-  description = "Data Transfer設定の名前"
-  value       = google_bigquery_data_transfer_config.gcs_to_bigquery.name
-}
-
-output "service_account_email" {
-  description = "Data Transfer用サービスアカウントのメールアドレス"
-  value       = google_service_account.data_transfer_sa.email
-}
-
-output "table_id" {
-  description = "作成されたBigQueryテーブルID"
-  value       = google_bigquery_table.price_data.table_id
-}
-
-output "source_uri_pattern" {
-  description = "GCSソースファイルのURIパターン"
-  value       = local.source_uris
 }

@@ -108,12 +108,6 @@ jobs:
           echo "Importing if exists: $TABLE_ID"
           terraform import google_bigquery_table.price_data "$TABLE_ID" \
             || echo "Table import skipped (not existing)"
-          
-          # サービスアカウントのインポートを試行
-          SA_ID="projects/$TF_VAR_project_id/serviceAccounts/bq-data-transfer-$TF_VAR_environment@$TF_VAR_project_id.iam.gserviceaccount.com"
-          echo "Importing if exists: $SA_ID"
-          terraform import google_service_account.data_transfer_sa "$SA_ID" \
-            || echo "Service account import skipped (not existing)"
         working-directory: ${{ matrix.directory }}
         continue-on-error: true
 

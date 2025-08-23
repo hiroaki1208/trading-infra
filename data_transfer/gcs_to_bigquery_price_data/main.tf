@@ -97,7 +97,7 @@ resource "google_bigquery_data_transfer_config" "gcs_to_bigquery" {
     destination_table_name_template = var.table_id
     file_format                     = "CSV"
     max_bad_records                 = "0"
-    skip_leading_rows               = "1" # ヘッダー行をスキップ
+    skip_leading_rows               = "1"            # ヘッダー行をスキップ
     write_disposition               = "WRITE_APPEND" # 既存データに追加
     field_delimiter                 = ","
     allow_quoted_newlines           = "false"

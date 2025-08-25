@@ -39,6 +39,24 @@
   - cloud sch invSA
     - cloud run起動
 
+# data transfer設定時の各種設定
+- 前提
+  - SAの種類：以下の３種類を作成
+    - terraform実行用SA：project: infraに作成。
+    - run time用SA：data transfer実行時に使用するためのSA。prod/devにそれぞれ作成
+作成
+- 設定内容
+  - terraform実行用SA周り
+    - prod/devそれぞれのプロジェクトにて以下を設定
+      - bigquery admin(権限ちょっとでかそうだが)
+      - act as runtimeSAそれぞれのSAにて、アクセスを許可するプリンシパルにterraform実行SAを追加）
+  - run timeSA
+    - アップロード元GCSのバケットへの閲覧権限
+
+- APIとかもろもろ
+  - API
+    - BigQuery Data Transfer APIを有効化
+
 # Terraform コマンド概要
 
 ## 1. `terraform fmt`（Format）

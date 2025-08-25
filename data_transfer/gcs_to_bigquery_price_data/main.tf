@@ -80,7 +80,7 @@ resource "google_bigquery_data_transfer_config" "gcs_to_bigquery" {
     field_delimiter                 = ","
     allow_quoted_newlines           = "false"
     allow_jagged_rows               = "false"
-    encoding                        = "UTF-8"
+    encoding                        = "UTF8"
   }
 
   # 通知設定（オプション）

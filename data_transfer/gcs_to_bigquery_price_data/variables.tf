@@ -131,10 +131,10 @@ variable "table_schema" {
       description = "価格"
     },
     {
-      name        = "fetch_time"
-      type        = "TIMESTAMP"
+      name        = "fetch_time_str"
+      type        = "STRING"
       mode        = "NULLABLE"
-      description = "データ取得時刻"
+      description = "データ取得時刻_文字列(%Y-%m-%d %H:%M:%S)"
     }
   ]
 }

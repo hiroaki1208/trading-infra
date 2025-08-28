@@ -2,7 +2,7 @@
 region = "asia-northeast1"
 
 # Cloud Run Job 設定
-job_name             = "fetch_daily_data_yfinance"
+job_name             = "fetch-daily-data-yfinance"
 container_image_dev  = "asia-northeast1-docker.pkg.dev/trading-dev-469206/trading/fetch_daily_data:latest"
 container_image_prod = "asia-northeast1-docker.pkg.dev/trading-prod-468212/trading/fetch_daily_data:latest"
 

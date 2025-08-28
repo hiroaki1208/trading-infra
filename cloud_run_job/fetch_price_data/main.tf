@@ -110,14 +110,10 @@ resource "google_cloud_scheduler_job" "fetch_daily_data_yfinance_scheduler" {
     body = base64encode(jsonencode({
       overrides = {
         containerOverrides = [{
-          args = ["--env", var.environment, "--base_date", formatdate("YYYYMMDD", timeadd(timestamp(), "24h"))]
+          args = ["--env", var.environment]
         }]
       }
     }))
-
-    headers = {
-      "Content-Type" = "application/json"
-    }
 
     # 起動用サービスアカウント（OAuthトークン発行に使用）
     oauth_token {

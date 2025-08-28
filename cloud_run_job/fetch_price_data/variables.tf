@@ -22,7 +22,6 @@ variable "google_credentials" {
 variable "job_name" {
   description = "Cloud Run Jobの名前"
   type        = string
-  default     = "hello-world-daily-job"
 }
 
 variable "container_image_dev" {
@@ -120,13 +119,11 @@ variable "environment_variables" {
 variable "scheduler_name" {
   description = "Cloud Schedulerジョブの名前"
   type        = string
-  default     = "hello-world-daily-scheduler"
 }
 
 variable "scheduler_description" {
   description = "Cloud Schedulerジョブの説明"
   type        = string
-  default     = "Daily execution of hello-world Cloud Run job"
 }
 
 variable "schedule_cron" {

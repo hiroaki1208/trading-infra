@@ -32,7 +32,7 @@ environment_variables = {
 
 # Cloud Scheduler 設定
 scheduler_name        = "fetch_daily_data_yfinance-scheduler"
-scheduler_description = "Daily execution of hello-world Cloud Run job"
+scheduler_description = "Daily execution of fetch daily data from yfinance Cloud Run job"
 schedule_cron         = "22 * * * *" # JST7:00
 time_zone             = "Asia/Tokyo"
 

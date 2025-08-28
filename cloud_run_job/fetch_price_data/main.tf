@@ -104,7 +104,7 @@ resource "google_cloud_scheduler_job" "fetch_daily_data_yfinance_scheduler" {
     http_method = "POST"
 
     # v2 の jobs:run エンドポイント（グローバルホスト）
-    uri = "https://run.googleapis.com/v2/projects/${var.project_id}/locations/${var.region}/jobs/${google_cloud_run_v2_job.hello_world_job.name}:run"
+    uri = "https://run.googleapis.com/v2/projects/${var.project_id}/locations/${var.region}/jobs/${google_cloud_run_v2_job.fetch_daily_data_yfinance.name}:run"
 
     # 引数を含むJSONボディを設定
     body = base64encode(jsonencode({
@@ -128,6 +128,6 @@ resource "google_cloud_scheduler_job" "fetch_daily_data_yfinance_scheduler" {
 
   depends_on = [
     google_project_service.cloud_scheduler,
-    google_cloud_run_v2_job.hello_world_job
+    google_cloud_run_v2_job.fetch_daily_data_yfinance
   ]
 }

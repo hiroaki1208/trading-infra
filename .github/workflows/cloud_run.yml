@@ -102,6 +102,8 @@ jobs:
           echo "Attempting to import existing Cloud Run job and scheduler..."
           terraform import google_cloud_run_v2_job.hello_world_job "projects/${TF_VAR_project_id}/locations/${TF_VAR_region}/jobs/hello-world-daily-job" || echo "Cloud Run job import failed or doesn't exist - continuing..."
           terraform import google_cloud_scheduler_job.hello_world_scheduler "projects/${TF_VAR_project_id}/locations/${TF_VAR_region}/jobs/hello-world-daily-scheduler" || echo "Scheduler job import failed or doesn't exist - continuing..."
+          terraform import google_cloud_run_v2_job.fetch_daily_data_yfinance "projects/${TF_VAR_project_id}/locations/${TF_VAR_region}/jobs/fetch-daily-data-yfinance" || echo "Cloud Run job import failed or doesn't exist - continuing..."
+          terraform import google_cloud_scheduler_job.fetch_daily_data_yfinance_scheduler "projects/${TF_VAR_project_id}/locations/${TF_VAR_region}/jobs/fetch_daily_data_yfinance-scheduler" || echo "Scheduler job import failed or doesn't exist - continuing..."
         working-directory: ${{ matrix.directory }}
         continue-on-error: true
 

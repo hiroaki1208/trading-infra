@@ -10,6 +10,12 @@ terraform {
   }
 }
 
+# 既存のBigQueryテーブルをインポート（存在する場合）
+import {
+  to = google_bigquery_table.price_data
+  id = "projects/${var.project_id}/datasets/${var.dataset_id}/tables/${var.table_id}"
+}
+
 # Google Cloudプロバイダーの設定
 provider "google" {
   project     = var.project_id

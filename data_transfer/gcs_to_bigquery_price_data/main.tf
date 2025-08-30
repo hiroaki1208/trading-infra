@@ -66,8 +66,9 @@ resource "google_bigquery_data_transfer_config" "gcs_to_bigquery" {
   # 転送先テーブルの設定
   destination_dataset_id = var.dataset_id
 
-  # スケジュール設定（毎日15時JST）
+  # スケジュール設定（毎日7時JST）
   schedule = "every day ${var.schedule_time}"
+  time_zone        = var.time_zone
 
   # データソース固有のパラメータ
   params = {

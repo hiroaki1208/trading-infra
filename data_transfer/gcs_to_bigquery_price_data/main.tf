@@ -10,6 +10,12 @@ terraform {
   }
 }
 
+# 既存のBigQueryテーブルをインポート（存在する場合）
+import {
+  to = google_bigquery_table.price_data
+  id = "projects/${var.project_id}/datasets/${var.dataset_id}/tables/${var.table_id}"
+}
+
 # Google Cloudプロバイダーの設定
 provider "google" {
   project     = var.project_id
@@ -66,7 +72,7 @@ resource "google_bigquery_data_transfer_config" "gcs_to_bigquery" {
   # 転送先テーブルの設定
   destination_dataset_id = var.dataset_id
 
-  # スケジュール設定（毎日15時JST）
+  # スケジュール設定（毎日22時UTC, 7:00JST）
   schedule = "every day ${var.schedule_time}"
 
   # データソース固有のパラメータ

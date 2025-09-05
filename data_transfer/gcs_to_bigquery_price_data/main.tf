@@ -77,7 +77,7 @@ resource "google_bigquery_data_transfer_config" "gcs_to_bigquery" {
 
   # スケジュールのタイムゾーンを JST に固定（←これが肝）
   schedule_options {
-    time_zone = ${var.time_zone}
+    time_zone = var.time_zone
   }
 
   # データソース固有のパラメータ

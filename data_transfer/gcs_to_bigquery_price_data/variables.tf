@@ -83,12 +83,6 @@ variable "schedule_time" {
   default     = "15:00"
 }
 
-variable "time_zone" {
-  description = "タイムゾーン"
-  type        = string
-  default     = "Asia/Tokyo"
-}
-
 # 使用するバケット名とサービスアカウント（環境に基づいて決定）
 locals {
   bucket_name                         = "${var.bucket_name_base}-${var.environment}"

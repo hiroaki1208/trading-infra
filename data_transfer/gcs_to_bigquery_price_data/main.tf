@@ -75,11 +75,6 @@ resource "google_bigquery_data_transfer_config" "gcs_to_bigquery" {
   # スケジュール設定（毎日22時UTC, 7:00JST）
   schedule = "every day ${var.schedule_time}"
 
-  # スケジュールのタイムゾーンを JST に固定（←これが肝）
-  schedule_options {
-    time_zone = var.time_zone
-  }
-
   # データソース固有のパラメータ
   params = {
     data_path_template              = local.source_uris
